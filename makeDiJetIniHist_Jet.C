@@ -26,12 +26,12 @@
 
 TChain* getChain_p[4] = {0, 0, 0, 0};
 
-Int_t ptHatCuts_PYTHHI[10] = {15, 30, 50, 80, 120, 170, 220, 280, 370, 1000000};
-Int_t ptHatCuts_PYTHPP[7] = {15, 30, 50, 80, 120, 170, 1000000};
-Int_t ptHatCuts_PYTHHYD[11] = {15, 30, 50, 80, 100, 120, 170, 220, 280, 370, 1000000};
+const Int_t ptHatCuts_PYTHHI[10] = {15, 30, 50, 80, 120, 170, 220, 280, 370, 1000000};
+const Int_t ptHatCuts_PYTHPP[7] = {15, 30, 50, 80, 120, 170, 1000000};
+const Int_t ptHatCuts_PYTHHYD[11] = {15, 30, 50, 80, 100, 120, 170, 220, 280, 370, 1000000};
 
-Float_t ptHatWeights_PYTHHYD[10] = {.611066, .0374106, .00232016, .00014917, .0000822379, .0000142819, .00000296162, .00000102099, .000000522123, .000000232907};
-Float_t ptHatWeights_PYTHPP[6] = {.161482, .00749461, .000752396, .0000837038, .0000101988, .00000175206};
+const Float_t ptHatWeights_PYTHHYD[10] = {.611066, .0374106, .00232016, .00014917, .0000822379, .0000142819, .00000296162, .00000102099, .000000522123, .000000232907};
+const Float_t ptHatWeights_PYTHPP[6] = {.161482, .00749461, .000752396, .0000837038, .0000101988, .00000175206};
 
 Int_t centCutArray[9] = {0, 10, 20, 40, 60, 80, 100, 140, 200};
 Float_t centCutArray_F[9] = {0, 10, 20, 40, 60, 80, 100, 140, 200};
@@ -356,13 +356,21 @@ void InitHist(TH1F* inHist_p, const std::string PtEta, const std::string MeanRes
 {
   handsomeTH1(inHist_p);
   inHist_p->GetXaxis()->SetTitleOffset(.75);
-  if(!strcmp(PtEta.c_str(), "Pt")) inHist_p->SetXTitle("p_{T}^{gen}");
-  else if(!strcmp(PtEta.c_str(), "Eta")) inHist_p->SetXTitle("#eta_{gen}");
-  else inHist_p->SetXTitle("#phi_{gen}");
+  if(strcmp(MeanRes.c_str(), "Fake") != 0){
+    if(!strcmp(PtEta.c_str(), "Pt")) inHist_p->SetXTitle("p_{T}^{gen}");
+    else if(!strcmp(PtEta.c_str(), "Eta")) inHist_p->SetXTitle("#eta_{gen}");
+    else inHist_p->SetXTitle("#phi_{gen}");
+  }
+  else{
+    if(!strcmp(PtEta.c_str(), "Pt")) inHist_p->SetXTitle("p_{T}^{reco}");
+    else if(!strcmp(PtEta.c_str(), "Eta")) inHist_p->SetXTitle("#eta_{reco}");
+    else inHist_p->SetXTitle("#phi_{reco}");
+  }    
 
   if(!strcmp(MeanRes.c_str(), "Mean")) inHist_p->SetYTitle("<p_{T}^{jet}/p_{T}^{gen}>");
   else if(!strcmp(MeanRes.c_str(), "Res")) inHist_p->SetYTitle("#sigma_{reco/gen}");
-  else inHist_p->SetYTitle("Efficiency");
+  else if(!strcmp(MeanRes.c_str(), "Eff")) inHist_p->SetYTitle("Efficiency");
+  else inHist_p->SetYTitle("Fake Rate");
 
   return;
 }
@@ -497,6 +505,9 @@ void makeDiJetIniHist(std::vector<std::string> inList, const std::string outName
   TH1F* temp_genEff_Pt_p[nCentBins][nPtBins];
   TH1F* temp_genEff_Eta_p[nCentBins][nEtaBins];
   TH1F* temp_genEff_Phi_p[nCentBins][nPhiBins];
+  TH1F* temp_recoFake_Pt_p[nCentBins][nPtBins];
+  TH1F* temp_recoFake_Eta_p[nCentBins][nEtaBins];
+  TH1F* temp_recoFake_Phi_p[nCentBins][nPhiBins];
 
   TH1F* temp_jetOverGen_Q_Pt_p[nCentBins][nPtBins];
   TH1F* temp_jetOverGen_Q_Eta_p[nCentBins][nEtaBins];
@@ -514,6 +525,7 @@ void makeDiJetIniHist(std::vector<std::string> inList, const std::string outName
     for(Int_t iter = 0; iter < nPtBins; iter++){
       temp_jetOverGen_Pt_p[centIter][iter] = new TH1F(Form("%s%s_tempJetHist_Pt_%s_%d", alg.c_str(), corrTitle.c_str(), centString[centIter].c_str(), iter), Form("%s%s_tempJetHist_Pt_%s_%d", alg.c_str(), corrTitle.c_str(), centString[centIter].c_str(), iter), 150, -0.01, 2.99);
       temp_genEff_Pt_p[centIter][iter] = new TH1F(Form("%s%s_tempGenEffHist_Pt_%s_%d", alg.c_str(), corrTitle.c_str(), centString[centIter].c_str(), iter), Form("%s%s_tempGenEffHist_Pt_%s_%d", alg.c_str(), corrTitle.c_str(), centString[centIter].c_str(), iter), 2, effBinning);      
+      temp_recoFake_Pt_p[centIter][iter] = new TH1F(Form("%s%s_tempRecoFakeHist_Pt_%s_%d", alg.c_str(), corrTitle.c_str(), centString[centIter].c_str(), iter), Form("%s%s_tempRecoFakeHist_Pt_%s_%d", alg.c_str(), corrTitle.c_str(), centString[centIter].c_str(), iter), 2, effBinning);      
 
 
       temp_jetOverGen_Q_Pt_p[centIter][iter] = new TH1F(Form("%s%s_tempJetHist_Q_Pt_%s_%d", alg.c_str(), corrTitle.c_str(), centString[centIter].c_str(), iter), Form("%s%s_tempJetHist_Q_Pt_%s_%d", alg.c_str(), corrTitle.c_str(), centString[centIter].c_str(), iter), 150, -0.01, 2.99);
@@ -524,6 +536,7 @@ void makeDiJetIniHist(std::vector<std::string> inList, const std::string outName
     for(Int_t iter = 0; iter < nEtaBins; iter++){
       temp_jetOverGen_Eta_p[centIter][iter] = new TH1F(Form("%s%s_tempJetHist_Eta_%s_%d", alg.c_str(), corrTitle.c_str(), centString[centIter].c_str(), iter), Form("%s%s_tempJetHist_Eta_%s_%d", alg.c_str(), corrTitle.c_str(), centString[centIter].c_str(), iter), 150, -0.01, 2.99);
       temp_genEff_Eta_p[centIter][iter] = new TH1F(Form("%s%s_tempGenEffHist_Eta_%s_%d", alg.c_str(), corrTitle.c_str(), centString[centIter].c_str(), iter), Form("%s%s_tempGenEffHist_Eta_%s_%d", alg.c_str(), corrTitle.c_str(), centString[centIter].c_str(), iter), 2, effBinning);
+      temp_recoFake_Eta_p[centIter][iter] = new TH1F(Form("%s%s_tempRecoFakeHist_Eta_%s_%d", alg.c_str(), corrTitle.c_str(), centString[centIter].c_str(), iter), Form("%s%s_tempRecoFakeHist_Eta_%s_%d", alg.c_str(), corrTitle.c_str(), centString[centIter].c_str(), iter), 2, effBinning);
 
       temp_jetOverGen_Q_Eta_p[centIter][iter] = new TH1F(Form("%s%s_tempJetHist_Q_Eta_%s_%d", alg.c_str(), corrTitle.c_str(), centString[centIter].c_str(), iter), Form("%s%s_tempJetHist_Q_Eta_%s_%d", alg.c_str(), corrTitle.c_str(), centString[centIter].c_str(), iter), 150, -0.01, 2.99);
 
@@ -533,6 +546,7 @@ void makeDiJetIniHist(std::vector<std::string> inList, const std::string outName
     for(Int_t iter = 0; iter < nPhiBins; iter++){
       temp_jetOverGen_Phi_p[centIter][iter] = new TH1F(Form("%s%s_tempJetHist_Phi_%s_%d", alg.c_str(), corrTitle.c_str(), centString[centIter].c_str(), iter), Form("%s%s_tempJetHist_Phi_%s_%d", alg.c_str(), corrTitle.c_str(), centString[centIter].c_str(), iter), 150, -0.01, 2.99);
       temp_genEff_Phi_p[centIter][iter] = new TH1F(Form("%s%s_tempGenEffHist_Phi_%s_%d", alg.c_str(), corrTitle.c_str(), centString[centIter].c_str(), iter), Form("%s%s_tempGenEffHist_Phi_%s_%d", alg.c_str(), corrTitle.c_str(), centString[centIter].c_str(), iter), 2, effBinning);
+      temp_recoFake_Phi_p[centIter][iter] = new TH1F(Form("%s%s_tempRecoFakeHist_Phi_%s_%d", alg.c_str(), corrTitle.c_str(), centString[centIter].c_str(), iter), Form("%s%s_tempRecoFakeHist_Phi_%s_%d", alg.c_str(), corrTitle.c_str(), centString[centIter].c_str(), iter), 2, effBinning);
 
       temp_jetOverGen_Q_Phi_p[centIter][iter] = new TH1F(Form("%s%s_tempJetHist_Q_Phi_%s_%d", alg.c_str(), corrTitle.c_str(), centString[centIter].c_str(), iter), Form("%s%s_tempJetHist_Q_Phi_%s_%d", alg.c_str(), corrTitle.c_str(), centString[centIter].c_str(), iter), 150, -0.01, 2.99);
 
@@ -549,6 +563,9 @@ void makeDiJetIniHist(std::vector<std::string> inList, const std::string outName
   TH1F* genEff_Pt_p[nCentBins];
   TH1F* genEff_Eta_p[nCentBins];
   TH1F* genEff_Phi_p[nCentBins];
+  TH1F* recoFake_Pt_p[nCentBins];
+  TH1F* recoFake_Eta_p[nCentBins];
+  TH1F* recoFake_Phi_p[nCentBins];
 
   TH1F* jetOverGenMean_Q_Pt_p[nCentBins];
   TH1F* jetOverGenMean_Q_Eta_p[nCentBins];
@@ -576,6 +593,10 @@ void makeDiJetIniHist(std::vector<std::string> inList, const std::string outName
     genEff_Pt_p[centIter] = new TH1F(Form("%s%s_Eff_Pt_%s_h", alg.c_str(), corrTitle.c_str(), centString[centIter].c_str()), Form("%s%s_Eff_Pt_%s_h", alg.c_str(), corrTitle.c_str(), centString[centIter].c_str()), nPtBins, ptBins);
     genEff_Eta_p[centIter] = new TH1F(Form("%s%s_Eff_Eta_%s_h", alg.c_str(), corrTitle.c_str(), centString[centIter].c_str()), Form("%s%s_Eff_Eta_%s_h", alg.c_str(), corrTitle.c_str(), centString[centIter].c_str()), nEtaBins, etaBins);
     genEff_Phi_p[centIter] = new TH1F(Form("%s%s_Eff_Phi_%s_h", alg.c_str(), corrTitle.c_str(), centString[centIter].c_str()), Form("%s%s_Eff_Phi_%s_h", alg.c_str(), corrTitle.c_str(), centString[centIter].c_str()), nPhiBins, phiBins);
+
+    recoFake_Pt_p[centIter] = new TH1F(Form("%s%s_Fake_Pt_%s_h", alg.c_str(), corrTitle.c_str(), centString[centIter].c_str()), Form("%s%s_Fake_Pt_%s_h", alg.c_str(), corrTitle.c_str(), centString[centIter].c_str()), nPtBins, ptBins);
+    recoFake_Eta_p[centIter] = new TH1F(Form("%s%s_Fake_Eta_%s_h", alg.c_str(), corrTitle.c_str(), centString[centIter].c_str()), Form("%s%s_Fake_Eta_%s_h", alg.c_str(), corrTitle.c_str(), centString[centIter].c_str()), nEtaBins, etaBins);
+    recoFake_Phi_p[centIter] = new TH1F(Form("%s%s_Fake_Phi_%s_h", alg.c_str(), corrTitle.c_str(), centString[centIter].c_str()), Form("%s%s_Fake_Phi_%s_h", alg.c_str(), corrTitle.c_str(), centString[centIter].c_str()), nPhiBins, phiBins);
 
     jetOverGenMean_Q_Pt_p[centIter] = new TH1F(Form("%s%s_Mean_Q_Pt_%s_h", alg.c_str(), corrTitle.c_str(), centString[centIter].c_str()), Form("%s%s_Mean_Q_Pt_%s_h", alg.c_str(), corrTitle.c_str(), centString[centIter].c_str()), nPtBins, ptBins);
     jetOverGenMean_Q_Eta_p[centIter] = new TH1F(Form("%s%s_Mean_Q_Eta_%s_h", alg.c_str(), corrTitle.c_str(), centString[centIter].c_str()), Form("%s%s_Mean_Q_Eta_%s_h", alg.c_str(), corrTitle.c_str(), centString[centIter].c_str()), nEtaBins, etaBins);
@@ -605,6 +626,10 @@ void makeDiJetIniHist(std::vector<std::string> inList, const std::string outName
     InitHist(genEff_Pt_p[centIter], "Pt", "Eff");
     InitHist(genEff_Eta_p[centIter], "Eta", "Eff");
     InitHist(genEff_Phi_p[centIter], "Phi", "Eff");
+
+    InitHist(recoFake_Pt_p[centIter], "Pt", "Fake");
+    InitHist(recoFake_Eta_p[centIter], "Eta", "Fake");
+    InitHist(recoFake_Phi_p[centIter], "Phi", "Fake");
 
     InitHist(jetOverGenMean_Q_Pt_p[centIter], "Pt", "Mean");
     InitHist(jetOverGenMean_Q_Eta_p[centIter], "Eta", "Mean");
@@ -685,6 +710,28 @@ void makeDiJetIniHist(std::vector<std::string> inList, const std::string outName
       }
     }
 
+    for(Int_t jtIter = 0; jtIter < nref_; jtIter++){
+      if(!jtPasses(jtpt_[jtIter], pthat_, isPbPb, isHITrk)) continue;
+
+      if(TMath::Abs(jteta_[jtIter]) >= 2.0) continue;
+
+      if(jtpt_[jtIter] < jtPtCut) continue;
+
+      Int_t ptPos = posSearch(jtpt_[jtIter], nPtBins+1, ptBins);
+      if(refpt_[jtIter] < 0) temp_recoFake_Pt_p[centPos][ptPos]->Fill(1.0);
+      else temp_recoFake_Pt_p[centPos][ptPos]->Fill(0.0);
+      
+      if(jtpt_[jtIter] > 50){
+	Int_t etaPos = posSearch(jteta_[jtIter], nEtaBins+1, etaBins);
+	if(refpt_[jtIter] < 0) temp_recoFake_Eta_p[centPos][etaPos]->Fill(1.0);
+	else temp_recoFake_Eta_p[centPos][etaPos]->Fill(0.0);
+
+	Int_t phiPos = posSearch(jtphi_[jtIter], nPhiBins+1, phiBins);
+	if(refpt_[jtIter] < 0) temp_recoFake_Phi_p[centPos][phiPos]->Fill(1.0);
+	else temp_recoFake_Phi_p[centPos][phiPos]->Fill(0.0);
+      }
+    }
+
     for(Int_t genIter = 0; genIter < ngen_; genIter++){
       if(!jtPasses(genpt_[genIter], pthat_, isPbPb, isHITrk)) continue;
 
@@ -753,6 +800,9 @@ void makeDiJetIniHist(std::vector<std::string> inList, const std::string outName
 
       genEff_Pt_p[centIter]->SetBinContent(rawIter+1, temp_genEff_Pt_p[centIter][rawIter]->GetMean());
       genEff_Pt_p[centIter]->SetBinError(rawIter+1, temp_genEff_Pt_p[centIter][rawIter]->GetMeanError());
+
+      recoFake_Pt_p[centIter]->SetBinContent(rawIter+1, temp_recoFake_Pt_p[centIter][rawIter]->GetMean());
+      recoFake_Pt_p[centIter]->SetBinError(rawIter+1, temp_recoFake_Pt_p[centIter][rawIter]->GetMeanError());
     }
 
     for(Int_t rawIter = 0; rawIter < nEtaBins; rawIter++){
@@ -796,6 +846,9 @@ void makeDiJetIniHist(std::vector<std::string> inList, const std::string outName
       
       genEff_Eta_p[centIter]->SetBinContent(rawIter+1, temp_genEff_Eta_p[centIter][rawIter]->GetMean());
       genEff_Eta_p[centIter]->SetBinError(rawIter+1, temp_genEff_Eta_p[centIter][rawIter]->GetMeanError());
+
+      recoFake_Eta_p[centIter]->SetBinContent(rawIter+1, temp_recoFake_Eta_p[centIter][rawIter]->GetMean());
+      recoFake_Eta_p[centIter]->SetBinError(rawIter+1, temp_recoFake_Eta_p[centIter][rawIter]->GetMeanError());
     }
 
     for(Int_t rawIter = 0; rawIter < nPhiBins; rawIter++){
@@ -840,6 +893,9 @@ void makeDiJetIniHist(std::vector<std::string> inList, const std::string outName
       
       genEff_Phi_p[centIter]->SetBinContent(rawIter+1, temp_genEff_Phi_p[centIter][rawIter]->GetMean());
       genEff_Phi_p[centIter]->SetBinError(rawIter+1, temp_genEff_Phi_p[centIter][rawIter]->GetMeanError());
+
+      recoFake_Phi_p[centIter]->SetBinContent(rawIter+1, temp_recoFake_Phi_p[centIter][rawIter]->GetMean());
+      recoFake_Phi_p[centIter]->SetBinError(rawIter+1, temp_recoFake_Phi_p[centIter][rawIter]->GetMeanError());
     }
   }
 
@@ -891,13 +947,19 @@ void makeDiJetIniHist(std::vector<std::string> inList, const std::string outName
     genEff_Eta_p[centIter]->Write("", TObject::kOverwrite);
     genEff_Phi_p[centIter]->Write("", TObject::kOverwrite);
 
+    recoFake_Pt_p[centIter]->Write("", TObject::kOverwrite);
+    recoFake_Eta_p[centIter]->Write("", TObject::kOverwrite);
+    recoFake_Phi_p[centIter]->Write("", TObject::kOverwrite);
+
     for(Int_t iter = 0; iter < nPtBins; iter++){
       temp_jetOverGen_Pt_p[centIter][iter]->Write("", TObject::kOverwrite);
       temp_jetOverGen_Q_Pt_p[centIter][iter]->Write("", TObject::kOverwrite);
       temp_jetOverGen_G_Pt_p[centIter][iter]->Write("", TObject::kOverwrite);
-      //      temp_jetOverGen_Eta_p[centIter][iter]->Write("", TObject::kOverwrite);
-      //      temp_genEff_Pt_p[centIter][iter]->Write("", TObject::kOverwrite);
-      //      temp_genEff_Eta_p[centIter][iter]->Write("", TObject::kOverwrite);
+      temp_jetOverGen_Eta_p[centIter][iter]->Write("", TObject::kOverwrite);
+      temp_genEff_Pt_p[centIter][iter]->Write("", TObject::kOverwrite);
+      temp_genEff_Eta_p[centIter][iter]->Write("", TObject::kOverwrite);
+      temp_recoFake_Pt_p[centIter][iter]->Write("", TObject::kOverwrite);
+      temp_recoFake_Eta_p[centIter][iter]->Write("", TObject::kOverwrite);
     }
   }
   for(Int_t iter = 0; iter < 4; iter++){
@@ -935,12 +997,17 @@ void makeDiJetIniHist(std::vector<std::string> inList, const std::string outName
     CleanTH1(genEff_Eta_p[centIter]);
     CleanTH1(genEff_Phi_p[centIter]);
 
+    CleanTH1(recoFake_Pt_p[centIter]);
+    CleanTH1(recoFake_Eta_p[centIter]);
+    CleanTH1(recoFake_Phi_p[centIter]);
+
     for(Int_t rawIter = 0; rawIter < nPtBins; rawIter++){
       CleanTH1(temp_jetOverGen_Pt_p[centIter][rawIter]);
       CleanTH1(temp_jetOverGen_Q_Pt_p[centIter][rawIter]);
       CleanTH1(temp_jetOverGen_G_Pt_p[centIter][rawIter]);
 
       CleanTH1(temp_genEff_Pt_p[centIter][rawIter]);
+      CleanTH1(temp_recoFake_Pt_p[centIter][rawIter]);
     }
 
     for(Int_t rawIter = 0; rawIter < nEtaBins; rawIter++){
@@ -949,6 +1016,7 @@ void makeDiJetIniHist(std::vector<std::string> inList, const std::string outName
       CleanTH1(temp_jetOverGen_G_Eta_p[centIter][rawIter]);
 
       CleanTH1(temp_genEff_Eta_p[centIter][rawIter]);
+      CleanTH1(temp_recoFake_Eta_p[centIter][rawIter]);
     }
 
     for(Int_t rawIter = 0; rawIter < nPhiBins; rawIter++){
@@ -957,6 +1025,7 @@ void makeDiJetIniHist(std::vector<std::string> inList, const std::string outName
       CleanTH1(temp_jetOverGen_G_Phi_p[centIter][rawIter]);
 
       CleanTH1(temp_genEff_Phi_p[centIter][rawIter]);
+      CleanTH1(temp_recoFake_Phi_p[centIter][rawIter]);
     }
   }
 
@@ -1016,8 +1085,8 @@ int runMakeDiJetIniHist(std::string fList = "", const char* outFileName = "raw_r
     }
   }
 
-  Int_t pfCaloStart = 0;
-  Int_t numStart = 5;
+  Int_t pfCaloStart = 1;
+  Int_t numStart = 0;
   Int_t numEnd = 6;
 
   if(isHITrk){
@@ -1038,15 +1107,15 @@ int runMakeDiJetIniHist(std::string fList = "", const char* outFileName = "raw_r
   for(Int_t numIter = numStart; numIter < numEnd; numIter++){
     Float_t algR = 0.2;
     Int_t algRBin = 0;
-    if(numIter == 3){
+    if(numIter == 2){
       algR = 0.3;
       algRBin = 1;
     }
-    else if(numIter == 4){
+    else if(numIter == 3){
       algR = 0.4;
       algRBin = 2;
     }
-    else if(numIter == 5){
+    else if(numIter == 4){
       algR = 0.5;
       algRBin = 3;
     }

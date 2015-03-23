@@ -16,7 +16,7 @@ Int_t centCutArray[9] = {0, 10, 20, 40, 60, 80, 100, 140, 200};
 Float_t centCutArray_F[9] = {0, 10, 20, 40, 60, 80, 100, 140, 200};
 
 const std::string PtEtaString[3] = {"Pt", "Eta", "Phi"};
-const std::string MeanResString[3] = {"Mean", "Res", "Eff"};
+const std::string MeanResString[4] = {"Mean", "Res", "Eff", "Fake"};
 const std::string PFCaloString[2] = {"PF", "Calo"};
 const std::string PuVsString[3] = {"", "Pu", "Vs"};
 const std::string QGString[3] = {"", "_Q", "_G"};
@@ -143,7 +143,7 @@ void plotDiJetIniHist_PYTH(const std::string histFileName, const std::string VsP
   if(isRes) corrTitle = "RES";
   else if(isFrag) corrTitle = "FRAG";
 
-  for(Int_t iter = 2; iter < 3; iter++){
+  for(Int_t iter = 0; iter < 6; iter++){
     std::cout << Form("ak%s%d%s%s_%s%s_%s_PP_h", VsPu.c_str(), iter+1, PFCalo.c_str(), corrTitle.c_str(), MeanRes.c_str(), qg.c_str(), PtEta.c_str()) << std::endl;
 
     jecHist_p[iter] = (TH1F*)f->Get(Form("ak%s%d%s%s_%s%s_%s_PP_h", VsPu.c_str(), iter+1, PFCalo.c_str(), corrTitle.c_str(), MeanRes.c_str(), qg.c_str(), PtEta.c_str()));
@@ -152,16 +152,16 @@ void plotDiJetIniHist_PYTH(const std::string histFileName, const std::string VsP
     plotInitHist(jecHist_p[iter]);
   }
 
-  TCanvas* plotCanv_p = new TCanvas(Form("ak%s%s%s_%s%s_%s_PP_c", VsPu.c_str(), PFCalo.c_str(), corrTitle.c_str(), MeanRes.c_str(), qg.c_str(), PtEta.c_str()), Form("ak%s%s%s_%s%s_%s_PP_c", VsPu.c_str(), PFCalo.c_str(), corrTitle.c_str(), MeanRes.c_str(), qg.c_str(), PtEta.c_str()), 1*300, 1*350);
-  //  plotCanv_p->Divide(3, 2, 0.0, 0.0);
+  TCanvas* plotCanv_p = new TCanvas(Form("ak%s%s%s_%s%s_%s_PP_c", VsPu.c_str(), PFCalo.c_str(), corrTitle.c_str(), MeanRes.c_str(), qg.c_str(), PtEta.c_str()), Form("ak%s%s%s_%s%s_%s_PP_c", VsPu.c_str(), PFCalo.c_str(), corrTitle.c_str(), MeanRes.c_str(), qg.c_str(), PtEta.c_str()), 3*300, 2*350);
+  plotCanv_p->Divide(3, 2, 0.0, 0.0);
 
   TLatex* label_p = new TLatex();
   label_p->SetNDC();
   label_p->SetTextFont(43);
   label_p->SetTextSizePixels(23);
 
-  for(Int_t iter = 2; iter < 3; iter++){
-    //    plotCanv_p->cd(iter+1);
+  for(Int_t iter = 0; iter < 6; iter++){
+        plotCanv_p->cd(iter+1);
 
     if(!strcmp(VsPu.c_str(), "Vs") && iter == 5) continue;
 
@@ -197,11 +197,15 @@ void plotDiJetIniHist_PYTHHYD(const std::string histFileName, const std::string 
   TH1F* jecHist_p[8];
   TH1F* jecPointHist_p[8][20];
 
+  std::cout << "A" << std::endl;
+
   std::string resFragStr = "";
   if(isRes) resFragStr = "RES";
   else if(isFrag) resFragStr = "FRAG";
 
   for(Int_t iter = 0; iter < 8; iter++){
+    std::cout << Form("%s%s_%s%s_%s_%d%d_h", alg.c_str(), resFragStr.c_str(), MeanRes.c_str(), qg.c_str(), PtEta.c_str(), centCutArray[iter]/2, centCutArray[iter+1]/2) << std::endl;
+
     jecHist_p[iter] = (TH1F*)f->Get(Form("%s%s_%s%s_%s_%d%d_h", alg.c_str(), resFragStr.c_str(), MeanRes.c_str(), qg.c_str(), PtEta.c_str(), centCutArray[iter]/2, centCutArray[iter+1]/2));
     jecHist_p[iter]->SetMaximum(max);
     jecHist_p[iter]->SetMinimum(min);
@@ -213,6 +217,8 @@ void plotDiJetIniHist_PYTHHYD(const std::string histFileName, const std::string 
     }
   }
 
+  std::cout << "B" << std::endl;
+
   TCanvas* plotCanv_p = new TCanvas(Form("%s%s_%s%s_%s_PbPb_c", alg.c_str(), resFragStr.c_str(), MeanRes.c_str(), qg.c_str(), PtEta.c_str()), Form("%s%s_%s_%s_PbPb_c", alg.c_str(), resFragStr.c_str(), MeanRes.c_str(), PtEta.c_str()), 4*300, 2*350);
   plotCanv_p->Divide(4, 2, 0.0, 0.0);
 
@@ -223,6 +229,8 @@ void plotDiJetIniHist_PYTHHYD(const std::string histFileName, const std::string 
       plotPointCanv_p[iter]->Divide(5, 4); 
     }
   }
+
+  std::cout << "C" << std::endl;
 
   TLatex* label_p = new TLatex();
   label_p->SetNDC();
@@ -250,8 +258,9 @@ void plotDiJetIniHist_PYTHHYD(const std::string histFileName, const std::string 
 	jecPointHist_p[iter][subIter]->DrawCopy();
       }
     }
-
   }
+
+  std::cout << "D" << std::endl;
 
   plotCanv_p->Write("", TObject::kOverwrite);
   claverCanvasSaving(plotCanv_p, Form("pdfDir/%s%s_%s%s_%s_PbPb", alg.c_str(), resFragStr.c_str(), MeanRes.c_str(), qg.c_str(), PtEta.c_str()), "pdf");
@@ -262,6 +271,8 @@ void plotDiJetIniHist_PYTHHYD(const std::string histFileName, const std::string 
       claverCanvasSaving(plotPointCanv_p[iter], Form("pdfDir/%s%s_tempJetHist%s_%s_PbPb_%d%d", alg.c_str(), resFragStr.c_str(), qg.c_str(), PtEta.c_str(), centCutArray[iter]/2, centCutArray[iter+1]/2), "pdf");
     }
   }
+
+  std::cout << "E" << std::endl;
 
   delete label_p;
   delete plotCanv_p;
@@ -290,7 +301,7 @@ void runPlotDiJetIniHist_PYTH(const std::string histFileName)
 
 	    //	    plotDiJetIniHist_PYTH(histFileName, PuVsString[puVsIter], PFCaloString[pfCaloIter], MeanResString[meanResIter], QGString[qgIter], PtEtaString[ptEtaIter], false, false);
 	    //plotDiJetIniHist_PYTH(histFileName, PuVsString[puVsIter], PFCaloString[pfCaloIter], MeanResString[meanResIter], QGString[qgIter], PtEtaString[ptEtaIter], true, false);
-	    plotDiJetIniHist_PYTH(histFileName, PuVsString[puVsIter], PFCaloString[pfCaloIter], MeanResString[meanResIter], QGString[qgIter], PtEtaString[ptEtaIter], true, true);
+	    plotDiJetIniHist_PYTH(histFileName, PuVsString[puVsIter], PFCaloString[pfCaloIter], MeanResString[meanResIter], QGString[qgIter], PtEtaString[ptEtaIter], false, false);
 	  }
 
 	}
@@ -304,17 +315,18 @@ void runPlotDiJetIniHist_PYTH(const std::string histFileName)
 void runPlotDiJetIniHist_PYTHHYD(const std::string histFileName)
 {
   for(Int_t ptEtaIter = 0; ptEtaIter < 3; ptEtaIter++){
-    for(Int_t meanResIter = 0; meanResIter < 3; meanResIter++){
+    for(Int_t meanResIter = 0; meanResIter < 4; meanResIter++){
       for(Int_t puVsIter = 1; puVsIter < 2; puVsIter++){
 	for(Int_t pfCaloIter = 1; pfCaloIter < 2; pfCaloIter++){
-	  for(Int_t numIter = 2; numIter < 3; numIter++){
+	  for(Int_t numIter = 1; numIter < 5; numIter++){
 
 	    for(Int_t qgIter = 0; qgIter < 3; qgIter++){
-	      if(meanResIter == 2 && qgIter > 0) continue;
-	      
-	      //	      plotDiJetIniHist_PYTHHYD(histFileName, Form("ak%s%d%s", PuVsString[puVsIter+1].c_str(), numIter+1, PFCaloString[pfCaloIter].c_str()), QGString[qgIter], MeanResString[meanResIter], PtEtaString[ptEtaIter]);
+	      if(meanResIter > 1 && qgIter > 0) continue;
 
-	      plotDiJetIniHist_PYTHHYD(histFileName, Form("ak%s%d%s", PuVsString[puVsIter+1].c_str(), numIter+1, PFCaloString[pfCaloIter].c_str()), QGString[qgIter], MeanResString[meanResIter], PtEtaString[ptEtaIter], true, false);
+	      std::cout << qgIter << ", " << numIter << ", " << pfCaloIter << ", " << puVsIter << ", " << meanResIter << ", " << ptEtaIter << std::endl;	      
+	      plotDiJetIniHist_PYTHHYD(histFileName, Form("ak%s%d%s", PuVsString[puVsIter+1].c_str(), numIter+1, PFCaloString[pfCaloIter].c_str()), QGString[qgIter], MeanResString[meanResIter], PtEtaString[ptEtaIter]);
+
+	      //	      plotDiJetIniHist_PYTHHYD(histFileName, Form("ak%s%d%s", PuVsString[puVsIter+1].c_str(), numIter+1, PFCaloString[pfCaloIter].c_str()), QGString[qgIter], MeanResString[meanResIter], PtEtaString[ptEtaIter], true, false);
 	      
 	      //	      plotDiJetIniHist_PYTHHYD(histFileName, Form("ak%s%d%s", PuVsString[puVsIter+1].c_str(), numIter+1, PFCaloString[pfCaloIter].c_str()), QGString[qgIter], MeanResString[meanResIter], PtEtaString[ptEtaIter], true, true);
 	    }
